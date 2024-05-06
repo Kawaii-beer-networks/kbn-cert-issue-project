@@ -1,11 +1,15 @@
-from typing import Union
-
 from fastapi import FastAPI,HTTPException
 import os
 import json
+from module import cert
 
+from dotenv import load_dotenv
 #For fastapi구동용
 app = FastAPI()
+
+load_dotenv()
+#set SECRET_ENV to DISCORD_BOT_TOKEN
+PKEY = os.getenv("PKEY")
 
 
 ## 404 Error For Default ##
@@ -26,19 +30,20 @@ def read_cert_list():
     directories = os.listdir("./issued_cert")
     for i in directories:
         domain_list.append(i)
-    return domain_list
+    return json.dumps(domain_list)
 
+#will be deprecated soon
 @app.get("/api/cert/{domain}")
 def read_domain_cert():
     #read specified domain here = var -> domain
     return True
 
-@app.post("api/cert/{domain}")
-def issue_domain_cert():
+@app.post("/api/cert/{domain}")
+def issue_domain_cert(domain):
     #Issue the CertDomain#
-    return True
+    return cert.generate_ssl_certificate(domain=domain,root_ca_cert_path="./rootca/localCA.pem",root_ca_key_path="./rootca/localCA.key",passphrase=PKEY.encode())
 
-@app.get("/api/download/{domain}")
+@app.get("/api/download?domain={domain}&key={key}")
 def create_download_domain():
     #Downloadable link crate#
     return True
