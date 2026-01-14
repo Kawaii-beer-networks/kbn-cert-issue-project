@@ -2,14 +2,13 @@ import { NextResponse } from "next/server"
 
 const API_BASE_URL = process.env.CERT_API_URL || "http://localhost:8000"
 
-// GET /api/cert/[domain] - Get certificate content
 export async function GET(request: Request, { params }: { params: Promise<{ domain: string }> }) {
   const { domain } = await params
 
   try {
     const response = await fetch(`${API_BASE_URL}/cert/${domain}`, {
       method: "GET",
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(10000),
     })
 
     if (!response.ok) {
@@ -19,10 +18,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ doma
       throw new Error("Failed to fetch certificate")
     }
 
-    const content = await response.text()
-    return new NextResponse(content, {
+    const blob = await response.blob()
+    return new NextResponse(blob, {
       headers: {
-        "Content-Type": "text/plain",
+        "Content-Type": "application/zip",
+        "Content-Disposition": `attachment; filename=${domain}.zip`,
       },
     })
   } catch (error) {
